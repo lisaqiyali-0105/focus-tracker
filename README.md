@@ -8,6 +8,9 @@ It tracks every app switch, calculates a focus score based on your actual switch
 
 Built for people with ADHD (or anyone who loses track of their own attention) who want honest visibility into their work life.
 
+![Daily dashboard](docs/screenshot-daily.png)
+![Weekly dashboard](docs/screenshot-weekly.png)
+
 ---
 
 ## What It Does
