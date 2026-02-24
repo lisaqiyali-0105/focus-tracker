@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Flow - Lisa's ADHD Activity Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color system */
+            --primary: #7c3aed;
+            --primary-light: #a78bfa;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #ef4444;
+            --health: #10b981;
+
+            /* Neutrals */
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+
+            /* Glassmorphism */
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 32px;
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Health Alert Banner */
+        .health-alert {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(245, 158, 11, 0.2));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .health-alert.hidden {
+            display: none;
+        }
+
+        .health-alert-icon {
+            font-size: 24px;
+        }
+
+        .health-alert-text {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .health-alert-action {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .health-alert-action:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Date selector */
+        .date-selector {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .date-selector label {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .date-selector input,
+        .date-selector select {
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-selector input:hover,
+        .date-selector select:hover {
+            border-color: var(--primary-light);
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+
+        .metric-card.alert {
+            border-color: var(--warning);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .metric-card.healthy {
+            border-color: var(--health);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .metric-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .metric-status.good {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--health);
+        }
+
+        .metric-status.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+        }
+
+        .metric-status.alert {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--warning);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .metric-unit {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        .metric-insight {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .metric-insight strong {
+            color: var(--primary-light);
+        }
+
+        /* Insights Panel */
+        .insights-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--primary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .insights-panel h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .insight-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .insight-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .insight-action {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--primary-light);
+            font-weight: 600;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .chart-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-value {
+                font-size: 28px;
+            }
+
+            header {
+                flex-direction: column;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Focus Flow</h1>
+                <p class="subtitle">ADHD-friendly activity insights for health & productivity</p>
+            </div>
+        </header>
+
+        <!-- Health Alert (shows when working too long) -->
+        <div id="healthAlert" class="health-alert hidden">
+            <span class="health-alert-icon">⚠️</span>
+            <div class="health-alert-text">
+                <strong>Time to rest!</strong> You've been working <span id="workHours">0</span>+ hours today. Physical activity matters for your health goals.
+            </div>
+            <button class="health-alert-action" onclick="dismissAlert()">Got it</button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="action-btn" onclick="startFocusSession()">
+                🎯 Start 90min Focus Block
+            </button>
+            <button class="action-btn" onclick="startBreakTimer()">
+                ⏸️ Take a Break (15min)
+            </button>
+            <button class="action-btn secondary" onclick="exportWeeklyReport()">
+                📊 Export Weekly Report
+            </button>
+            <button class="action-btn secondary" onclick="setGoals()">
+                🎯 Set Daily Goals
+            </button>
+        </div>
+
+        <div class="date-selector">
+            <label>📅 Date Range</label>
+            <input type="date" id="startDate" />
+            <label>to</label>
+            <input type="date" id="endDate" />
+            <select id="presetRange">
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="week" selected>This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+
+        <div class="metrics-grid">
+            <!-- Work Time with Alert -->
+            <div class="metric-card" id="workTimeCard">
+                <div class="metric-header">
+                    <div class="metric-icon">⏱️</div>
+                    <span class="metric-status good" id="workStatus">Healthy</span>
+                </div>
+                <div class="metric-label">Total Active Time</div>
+                <div>
+                    <span class="metric-value" id="totalTime">-</span>
+                    <span class="metric-unit">hrs</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="workInsight">On track for a balanced day</strong>
+                </div>
+            </div>
+
+            <!-- Last Break -->
+            <div class="metric-card" id="breakCard">
+                <div class="metric-header">
+                    <div class="metric-icon">⏸️</div>
+                    <span class="metric-status good" id="breakStatus">Good</span>
+                </div>
+                <div class="metric-label">Last Break</div>
+                <div>
+                    <span class="metric-value" id="lastBreak">-</span>
+                    <span class="metric-unit">min ago</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="breakInsight">Take a break every 90 minutes</strong>
+                </div>
+            </div>
+
+            <!-- Focus Quality -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon">🎯</div>
+                    <span class="metric-status good" id="focusStatus">Strong</span>
+                </div>
+                <div class="metric-label">Avg Focus Session</div>
+                <div>
+                    <span class="metric-value" id="avgFocus">-</span>
+                    <span class="metric-unit">min</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="focusInsight">Aim for 25+ min sessions for flow state</strong>
+                </div>
+            </div>
+
+            <!-- App Switches -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon">🔄</div>
+                    <span class="metric-status warning" id="switchStatus">High</span>
+                </div>
+                <div class="metric-label">App Switches</div>
+                <div>
+                    <span class="metric-value" id="switchCount">-</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="switchInsight">Lower is better for deep work</strong>
+                </div>
+            </div>
+
+            <!-- Slack Time -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon">💬</div>
+                </div>
+                <div class="metric-label">Slack Activity</div>
+                <div>
+                    <span class="metric-value" id="slackTime">-</span>
+                    <span class="metric-unit">hrs</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="slackInsight">Communication time</strong>
+                </div>
+            </div>
+
+            <!-- Deep Work -->
+            <div class="metric-card healthy">
+                <div class="metric-header">
+                    <div class="metric-icon">🧘</div>
+                    <span class="metric-status good" id="deepWorkStatus">Good</span>
+                </div>
+                <div class="metric-label">Deep Work Blocks</div>
+                <div>
+                    <span class="metric-value" id="deepWorkCount">-</span>
+                    <span class="metric-unit">blocks</span>
+                </div>
+                <div class="metric-insight">
+                    <strong id="deepWorkInsight">Target: 2-3 blocks per day</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actionable Insights Panel -->
+        <div class="insights-panel">
+            <h2>💡 Today's Pattern Insights</h2>
+            <div class="insight-item">
+                <div class="insight-title">Peak Distraction Window</div>
+                <div class="insight-description">You switch apps most between 2-4 PM. Try scheduling deep work blocks before noon.</div>
+                <div class="insight-action">→ Block calendar 9-11 AM tomorrow</div>
+            </div>
+            <div class="insight-item">
+                <div class="insight-title">Focus Improving</div>
+                <div class="insight-description">Avg session length up 35% vs last week! Keep it up.</div>
+                <div class="insight-action">→ What changed? Document your wins</div>
+            </div>
+            <div class="insight-item">
+                <div class="insight-title">Rest Reminder</div>
+                <div class="insight-description">You've worked 5 days straight. Physical activity matters for your health goals.</div>
+                <div class="insight-action">→ Schedule morning run tomorrow</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>📊 Time by Category</h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>🌊 Focus Flow Timeline</h2>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>🏆 Top Apps</h2>
+                <div class="chart-container">
+                    <canvas id="topAppsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>📈 Weekly Trends</h2>
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js config
+        Chart.defaults.color = '#cbd5e1';
+        Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.1)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // Quick action functions
+        function startFocusSession() {
+            alert('🎯 Focus session started! Timer set for 90 minutes. Notifications blocked.');
+            // TODO: Integrate with actual timer/notification system
+        }
+
+        function startBreakTimer() {
+            alert('⏸️ Break time! 15 minute timer started. Step away from the screen.');
+            // TODO: Integrate with actual timer
+        }
+
+        function exportWeeklyReport() {
+            alert('📊 Exporting weekly report...');
+            // TODO: Generate and download report
+        }
+
+        function setGoals() {
+            const goals = prompt('Set your daily goals:\n\nFormat: "3 deep work blocks, max 50 switches"');
+            if (goals) {
+                alert('🎯 Goals saved! I\'ll track your progress.');
+                // TODO: Save goals and track
+            }
+        }
+
+        function dismissAlert() {
+            document.getElementById('healthAlert').classList.add('hidden');
+        }
+
+        // Health alert logic
+        function checkWorkHours(totalHours) {
+            const alertEl = document.getElementById('healthAlert');
+            const hoursEl = document.getElementById('workHours');
+
+            if (totalHours >= 8) {
+                alertEl.classList.remove('hidden');
+                hoursEl.textContent = Math.floor(totalHours);
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            try {
+                const response = await fetch(`/api/dashboard-data?start=${startDate}&end=${endDate}`);
+                const data = await response.json();
+
+                // Update metrics
+                const totalHours = parseFloat(data.totalTime) || 0;
+                document.getElementById('totalTime').textContent = totalHours.toFixed(1);
+                document.getElementById('switchCount').textContent = data.switchCount || '-';
+                document.getElementById('slackTime').textContent = data.slackTime || '-';
+                document.getElementById('avgFocus').textContent = data.avgFocusSession || '-';
+                document.getElementById('deepWorkCount').textContent = data.deepWorkBlocks || '-';
+                document.getElementById('lastBreak').textContent = data.lastBreak || '-';
+
+                // Update status indicators
+                updateWorkStatus(totalHours);
+                updateBreakStatus(data.lastBreak || 0);
+                updateFocusStatus(data.avgFocusSession || 0);
+
+                // Check health alert
+                checkWorkHours(totalHours);
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function updateWorkStatus(hours) {
+            const card = document.getElementById('workTimeCard');
+            const status = document.getElementById('workStatus');
+            const insight = document.getElementById('workInsight');
+
+            if (hours >= 10) {
+                card.classList.add('alert');
+                status.className = 'metric-status alert';
+                status.textContent = 'Too Much';
+                insight.innerHTML = '<strong>Time to stop!</strong> Physical rest is critical for your health goals.';
+            } else if (hours >= 8) {
+                card.classList.remove('alert', 'healthy');
+                status.className = 'metric-status warning';
+                status.textContent = 'High';
+                insight.innerHTML = '<strong>Approaching limit.</strong> Plan to wrap up soon.';
+            } else {
+                card.classList.add('healthy');
+                card.classList.remove('alert');
+                status.className = 'metric-status good';
+                status.textContent = 'Healthy';
+                insight.innerHTML = '<strong>Good balance!</strong> Keep it sustainable.';
+            }
+        }
+
+        function updateBreakStatus(minsSinceBreak) {
+            const card = document.getElementById('breakCard');
+            const status = document.getElementById('breakStatus');
+            const insight = document.getElementById('breakInsight');
+
+            if (minsSinceBreak >= 120) {
+                card.classList.add('alert');
+                status.className = 'metric-status alert';
+                status.textContent = 'Overdue';
+                insight.innerHTML = '<strong>Take a break now!</strong> Stand up, stretch, breathe.';
+            } else if (minsSinceBreak >= 90) {
+                status.className = 'metric-status warning';
+                status.textContent = 'Soon';
+                insight.innerHTML = '<strong>Break coming up.</strong> Wrap up current task.';
+            } else {
+                status.className = 'metric-status good';
+                status.textContent = 'Good';
+                insight.innerHTML = 'Taking regular breaks improves focus.';
+            }
+        }
+
+        function updateFocusStatus(avgMinutes) {
+            const status = document.getElementById('focusStatus');
+            const insight = document.getElementById('focusInsight');
+
+            if (avgMinutes >= 25) {
+                status.className = 'metric-status good';
+                status.textContent = 'Strong';
+                insight.innerHTML = '<strong>Excellent!</strong> You\'re hitting flow state consistently.';
+            } else if (avgMinutes >= 15) {
+                status.className = 'metric-status warning';
+                status.textContent = 'Okay';
+                insight.innerHTML = '<strong>Room to improve.</strong> Try blocking distractions.';
+            } else {
+                status.className = 'metric-status alert';
+                status.textContent = 'Scattered';
+                insight.innerHTML = '<strong>High distraction.</strong> Turn off Slack notifications?';
+            }
+        }
+
+        // Date range presets
+        document.getElementById('presetRange').addEventListener('change', (e) => {
+            const preset = e.target.value;
+            const today = new Date();
+            let startDate = new Date();
+
+            switch(preset) {
+                case 'today':
+                    startDate = today;
+                    break;
+                case 'yesterday':
+                    startDate.setDate(today.getDate() - 1);
+                    break;
+                case 'week':
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setMonth(today.getMonth() - 1);
+                    break;
+            }
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+            loadDashboardData();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            document.getElementById('startDate').value = weekAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html>

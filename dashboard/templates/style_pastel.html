@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Tracker - Refined Pastel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Notion-inspired muted palette */
+            --bg-main: #F7F6F3;
+            --bg-card: #FFFFFF;
+            --accent-soft-blue: #D3E4FD;
+            --accent-soft-purple: #E8DEEE;
+            --accent-soft-green: #D4EDDA;
+            --accent-soft-pink: #F8E8EE;
+            --accent-soft-yellow: #FFF4CC;
+            --text-primary: #37352F;
+            --text-secondary: #787774;
+            --text-tertiary: #9B9A97;
+            --border-light: #E9E9E7;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            padding: 40px 20px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        .date-selector {
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .date-selector:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .date-selector label {
+            font-weight: 500;
+            margin-right: 10px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .date-selector input,
+        .date-selector select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .date-selector select:hover,
+        .date-selector input:hover {
+            border-color: var(--text-tertiary);
+            box-shadow: 0 0 0 2px rgba(55, 53, 47, 0.08);
+        }
+
+        .date-selector select:focus,
+        .date-selector input:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+            box-shadow: 0 0 0 2px rgba(55, 53, 47, 0.12);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .metric-card:nth-child(1) { border-left: 3px solid #A8C5E8; }
+        .metric-card:nth-child(2) { border-left: 3px solid #B8A8D8; }
+        .metric-card:nth-child(3) { border-left: 3px solid #A8D8B8; }
+        .metric-card:nth-child(4) { border-left: 3px solid #E8A8C5; }
+        .metric-card:nth-child(5) { border-left: 3px solid #D8C8A8; }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-unit {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-left: 4px;
+            font-weight: 400;
+        }
+
+        .metric-description {
+            margin-top: 8px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-card h2 {
+            font-size: 1.125rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .sessions-table {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        .sessions-table h2 {
+            font-size: 1.125rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--bg-main);
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        tr {
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.15s ease;
+        }
+
+        tr:hover {
+            background: var(--bg-main);
+        }
+
+        td {
+            padding: 12px;
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--accent-soft-blue);
+        }
+
+        .badge-deep {
+            background: var(--accent-soft-green);
+            color: var(--text-primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            margin-left: 4px;
+            font-weight: 500;
+        }
+
+        .badge-split-screen {
+            background: var(--accent-soft-purple);
+            color: var(--text-primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            margin-left: 4px;
+            font-weight: 500;
+        }
+
+        .badge-focus {
+            background: var(--accent-soft-yellow);
+            color: var(--text-primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            margin-left: 4px;
+            font-weight: 500;
+        }
+
+        .badge-task {
+            background: var(--accent-soft-pink);
+            color: var(--text-primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            margin-left: 4px;
+            font-weight: 500;
+        }
+
+        /* Focus Score Scale */
+        .focus-score {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 8px 0;
+        }
+
+        .focus-scale {
+            margin: 16px 0;
+        }
+
+        .focus-scale-bar {
+            position: relative;
+            height: 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .focus-scale-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #A8D8B8 0%, #A8C5E8 100%);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .focus-scale-marker {
+            position: absolute;
+            top: -4px;
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary);
+            border: 2px solid var(--bg-card);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            transition: left 0.6s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .focus-scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            padding: 0 2px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 12px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Activity Tracker Dashboard</h1>
+        <p class="subtitle">ADHD-focused activity insights</p>
+
+        <div class="date-selector">
+            <label for="date">Date:</label>
+            <input type="date" id="date" value="">
+
+            <label for="timezone" style="margin-left: 30px;">View in Timezone:</label>
+            <select id="timezone">
+                <option value="local">Local Time</option>
+                <option value="EST">Eastern (EST/EDT)</option>
+                <option value="PST">Pacific (PST/PDT)</option>
+            </select>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">
+                    Focus Score
+                    <span class="info-icon" title="Focus Score (0-100) measures your ability to maintain attention:
+• 40 points: Deep work sessions (>25 min)
+• 30 points: Avoiding rapid switches (<30 sec)
+• 20 points: Staying in fewer apps
+• 10 points: Total productive time
+
+Higher scores = better sustained focus
+Lower scores = more context switching (common with ADHD)">ⓘ</span>
+                </div>
+                <div class="focus-score" id="focus-score">--</div>
+
+                <!-- Visual Scale -->
+                <div class="focus-scale">
+                    <div class="focus-scale-bar">
+                        <div class="focus-scale-fill" id="focus-scale-fill" style="width: 0%"></div>
+                        <div class="focus-scale-marker" id="focus-scale-marker" style="left: 0%"></div>
+                    </div>
+                    <div class="focus-scale-labels">
+                        <span>0</span>
+                        <span>20</span>
+                        <span>40</span>
+                        <span>60</span>
+                        <span>80</span>
+                        <span>100</span>
+                    </div>
+                </div>
+
+                <div class="metric-description">
+                    <small id="focus-score-description">Loading...</small>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Tracked</div>
+                <div class="metric-value" id="total-tracked">--<span class="metric-unit">hrs</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Deep Work Sessions</div>
+                <div class="metric-value" id="deep-work">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Split Screen Time</div>
+                <div class="metric-value" id="split-screen">--<span class="metric-unit">hrs</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Rapid Switches</div>
+                <div class="metric-value" id="rapid-switches">--</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <!-- Hidden until AI categorization is set up -->
+            <div class="chart-card" style="display: none;">
+                <h2>Time by Category</h2>
+                <div class="chart-container">
+                    <canvas id="category-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>Top Apps</h2>
+                <div class="chart-container">
+                    <canvas id="apps-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2 id="hourly-chart-title">Hourly Focus Distribution (6 AM - 10 PM)</h2>
+                <div class="chart-container">
+                    <canvas id="hourly-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="sessions-table">
+            <h2>Slack Activity Today</h2>
+            <table id="slack-table">
+                <thead>
+                    <tr>
+                        <th>Conversation</th>
+                        <th>Type</th>
+                        <th>Time Spent</th>
+                        <th>Views</th>
+                        <th>Last Viewed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Enhanced Slack Analytics -->
+        <div class="charts-grid" style="margin-top: 20px;">
+            <div class="chart-card">
+                <h2>⚡ Context Switching Cost</h2>
+                <div id="slack-switching-metrics">
+                    <p class="loading">Loading switching metrics...</p>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>💬 Piecemeal Messaging Patterns</h2>
+                <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">
+                    Conversations checked multiple times in 5-minute windows
+                </p>
+                <div id="slack-piecemeal-patterns">
+                    <p class="loading">Loading patterns...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sessions-table" style="margin-top: 20px;">
+            <h2>⏱️ Response Time Patterns</h2>
+            <table id="slack-response-times-table">
+                <thead>
+                    <tr>
+                        <th>Conversation</th>
+                        <th>Avg Response Time</th>
+                        <th>Total Responses</th>
+                        <th>New Messages</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sessions-table">
+            <h2>Recent Sessions</h2>
+            <table id="sessions-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Duration</th>
+                        <th>App</th>
+                        <th>Window</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions-body">
+                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date as default (using local timezone)
+        const dateInput = document.getElementById('date');
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+
+        const timezoneInput = document.getElementById('timezone');
+
+        let charts = {};
+        let currentTimezone = 'local';
+
+        // Timezone offset mapping
+        const timezoneOffsets = {
+            'local': 0,
+            'EST': -5, // EST is UTC-5 (or -4 during EDT)
+            'PST': -8  // PST is UTC-8 (or -7 during PDT)
+        };
+
+        // Convert hour to different timezone
+        function convertHour(hour, fromTz, toTz) {
+            if (fromTz === toTz) return hour;
+
+            // For simplicity, assume we're converting from local to EST/PST
+            const localOffset = new Date().getTimezoneOffset() / -60; // Current offset from UTC
+            const targetOffset = timezoneOffsets[toTz] || localOffset;
+
+            let converted = hour + (targetOffset - localOffset);
+
+            // Handle wrap around
+            if (converted < 0) converted += 24;
+            if (converted >= 24) converted -= 24;
+
+            return Math.floor(converted);
+        }
+
+        // Convert time string to different timezone
+        function convertTimeString(timeStr, toTz) {
+            if (toTz === 'local') return timeStr;
+
+            const date = new Date(timeStr);
+            const localOffset = date.getTimezoneOffset() / -60;
+            const targetOffset = timezoneOffsets[toTz] || localOffset;
+            const offsetDiff = targetOffset - localOffset;
+
+            date.setHours(date.getHours() + offsetDiff);
+            return date.toLocaleTimeString();
+        }
+
+        // Get timezone display name
+        function getTimezoneName(tz) {
+            if (tz === 'local') {
+                return Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }
+            return tz;
+        }
+
+        // Load data when date or timezone changes
+        dateInput.addEventListener('change', loadData);
+        timezoneInput.addEventListener('change', () => {
+            currentTimezone = timezoneInput.value;
+            loadData();
+        });
+
+        // Initial load
+        loadData();
+
+        async function loadData() {
+            const date = dateInput.value;
+
+            try {
+                // Load all data in parallel
+                const [overview, categories, topApps, sessions, focusAnalysis, slack, slackSwitching, slackPiecemeal, slackResponseTimes] = await Promise.all([
+                    fetch(`/api/overview?date=${date}`).then(r => r.json()),
+                    fetch(`/api/categories/summary?date=${date}`).then(r => r.json()),
+                    fetch(`/api/top-apps?date=${date}&limit=5`).then(r => r.json()),
+                    fetch(`/api/sessions?date=${date}&limit=50`).then(r => r.json()),
+                    fetch(`/api/focus/analysis?date=${date}`).then(r => r.json()),
+                    fetch(`/api/slack/summary?date=${date}`).then(r => r.json()),
+                    fetch(`/api/slack/switching?date=${date}`).then(r => r.json()),
+                    fetch(`/api/slack/piecemeal?date=${date}`).then(r => r.json()),
+                    fetch(`/api/slack/response-times?date=${date}`).then(r => r.json())
+                ]);
+
+                updateMetrics(overview);
+                updateCategoryChart(categories);
+                updateAppsChart(topApps);
+                updateHourlyChart(focusAnalysis);
+                updateSessionsTable(sessions);
+                updateSlackTable(slack);
+                updateSlackSwitchingMetrics(slackSwitching);
+                updateSlackPiecemealPatterns(slackPiecemeal);
+                updateSlackResponseTimes(slackResponseTimes);
+
+                hideError();
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
+
+        function updateMetrics(data) {
+            const score = data.focus_score || 0;
+            document.getElementById('focus-score').textContent = score || '--';
+            document.getElementById('total-tracked').innerHTML =
+                `${data.total_tracked_hours || '--'}<span class="metric-unit">hrs</span>`;
+            document.getElementById('deep-work').textContent = data.deep_work_sessions || '--';
+            document.getElementById('split-screen').innerHTML =
+                `${data.split_screen_hours || '--'}<span class="metric-unit">hrs</span>`;
+            document.getElementById('rapid-switches').textContent = data.rapid_switches || '--';
+
+            // Update focus score scale
+            const scaleFill = document.getElementById('focus-scale-fill');
+            const scaleMarker = document.getElementById('focus-scale-marker');
+            if (score > 0) {
+                const percentage = Math.min(score, 100);
+                scaleFill.style.width = percentage + '%';
+                scaleMarker.style.left = percentage + '%';
+            }
+
+            // Add focus score description
+            const descEl = document.getElementById('focus-score-description');
+            if (score >= 80) {
+                descEl.innerHTML = '🎯 <strong>Excellent!</strong> Deep work + minimal switching';
+            } else if (score >= 60) {
+                descEl.innerHTML = '👍 <strong>Good focus</strong> - Some switching but staying on task';
+            } else if (score >= 40) {
+                descEl.innerHTML = '⚡ <strong>Moderate</strong> - Frequent context switching detected';
+            } else if (score >= 20) {
+                descEl.innerHTML = '🔄 <strong>High switching</strong> - Short bursts across many apps';
+            } else if (score > 0) {
+                descEl.innerHTML = '⚠️ <strong>Very fragmented</strong> - Mostly rapid switches';
+            } else {
+                descEl.innerHTML = 'Score based on: deep work (40%), fewer switches (30%), focus consistency (30%)';
+            }
+        }
+
+        function updateCategoryChart(data) {
+            const ctx = document.getElementById('category-chart').getContext('2d');
+
+            if (charts.category) {
+                charts.category.destroy();
+            }
+
+            const categories = data.categories || [];
+
+            charts.category = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories.map(c => c.name),
+                    datasets: [{
+                        data: categories.map(c => c.total_hours),
+                        backgroundColor: categories.map(c => c.color),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAppsChart(data) {
+            const ctx = document.getElementById('apps-chart').getContext('2d');
+
+            if (charts.apps) {
+                charts.apps.destroy();
+            }
+
+            const apps = data.apps || [];
+
+            charts.apps = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: apps.map(a => a.app_name),
+                    datasets: [{
+                        label: 'Hours',
+                        data: apps.map(a => a.total_hours),
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHourlyChart(data) {
+            const ctx = document.getElementById('hourly-chart').getContext('2d');
+
+            if (charts.hourly) {
+                charts.hourly.destroy();
+            }
+
+            const hourly = data.hourly_distribution || [];
+
+            // Get display timezone name
+            const displayTzName = currentTimezone === 'local'
+                ? (data.timezone || 'Local Time')
+                : currentTimezone;
+
+            // Update chart title with selected timezone
+            const titleEl = document.getElementById('hourly-chart-title');
+            titleEl.textContent = `Hourly Focus Distribution (${displayTzName}) - 6 AM to 10 PM`;
+
+            // Create array for meaningful working hours only (6 AM - 10 PM)
+            const hours = Array.from({length: 17}, (_, i) => i + 6);
+            const values = hours.map(targetHour => {
+                // If converting timezone, find the corresponding source hour
+                if (currentTimezone !== 'local') {
+                    const localOffset = new Date().getTimezoneOffset() / -60;
+                    const targetOffset = timezoneOffsets[currentTimezone];
+                    const offsetDiff = localOffset - targetOffset;
+                    const sourceHour = (targetHour + offsetDiff + 24) % 24;
+
+                    const found = hourly.find(d => d.hour === sourceHour);
+                    return found ? found.seconds / 3600 : 0;
+                } else {
+                    const found = hourly.find(d => d.hour === targetHour);
+                    return found ? found.seconds / 3600 : 0;
+                }
+            });
+
+            // Format hours in 12-hour format
+            const formatHour = (h) => {
+                if (h === 0) return '12 AM';
+                if (h === 12) return '12 PM';
+                if (h < 12) return `${h} AM`;
+                return `${h - 12} PM`;
+            };
+
+            charts.hourly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours.map(h => formatHour(h)),
+                    datasets: [{
+                        label: 'Hours',
+                        data: values,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const hours = context.parsed.y;
+                                    const minutes = Math.round((hours % 1) * 60);
+                                    const wholeHours = Math.floor(hours);
+                                    if (wholeHours === 0 && minutes > 0) {
+                                        return `${minutes} min`;
+                                    }
+                                    if (minutes === 0) {
+                                        return `${wholeHours}h`;
+                                    }
+                                    return `${wholeHours}h ${minutes}m`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time Spent'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + 'h';
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hour of Day'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSlackTable(data) {
+            const tbody = document.querySelector('#slack-table tbody');
+            const conversations = data.conversations || [];
+
+            if (conversations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="loading">No Slack activity found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = conversations.slice(0, 10).map(conv => `
+                <tr>
+                    <td><strong>${conv.name}</strong></td>
+                    <td>${conv.type === 'channel' ? '📢 Channel' : conv.type === 'activity_feed' ? '🔔 Activity' : '💬 DM'}</td>
+                    <td>${conv.total_minutes} min</td>
+                    <td>${conv.view_count}x</td>
+                    <td>${new Date(conv.last_viewed).toLocaleTimeString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSlackSwitchingMetrics(data) {
+            const container = document.getElementById('slack-switching-metrics');
+            const metrics = data.switching_metrics || {};
+
+            if (metrics.total_switches === 0) {
+                container.innerHTML = '<p class="loading">No switching data yet</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div style="padding: 12px; background: #f7fafc; border-radius: 6px;">
+                        <div style="font-size: 24px; font-weight: 600; color: #2d3748;">${metrics.total_switches}</div>
+                        <div style="font-size: 12px; color: #718096;">Total Switches</div>
+                    </div>
+                    <div style="padding: 12px; background: #fff5f5; border-radius: 6px;">
+                        <div style="font-size: 24px; font-weight: 600; color: #e53e3e;">${metrics.rapid_switches}</div>
+                        <div style="font-size: 12px; color: #718096;">Rapid Switches (&lt;60s)</div>
+                    </div>
+                    <div style="padding: 12px; background: #f7fafc; border-radius: 6px;">
+                        <div style="font-size: 24px; font-weight: 600; color: #2d3748;">${metrics.average_time_before_switch_minutes} min</div>
+                        <div style="font-size: 12px; color: #718096;">Avg Time Before Switch</div>
+                    </div>
+                    <div style="padding: 12px; background: ${metrics.rapid_switch_percentage > 30 ? '#fff5f5' : '#f7fafc'}; border-radius: 6px;">
+                        <div style="font-size: 24px; font-weight: 600; color: ${metrics.rapid_switch_percentage > 30 ? '#e53e3e' : '#2d3748'};">${metrics.rapid_switch_percentage}%</div>
+                        <div style="font-size: 12px; color: #718096;">Rapid Switch Rate</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSlackPiecemealPatterns(data) {
+            const container = document.getElementById('slack-piecemeal-patterns');
+            const patterns = data.piecemeal_patterns || [];
+
+            if (patterns.length === 0) {
+                container.innerHTML = '<p class="loading">No piecemeal patterns detected</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="max-height: 300px; overflow-y: auto;">
+                    ${patterns.slice(0, 10).map(p => `
+                        <div style="padding: 12px; margin-bottom: 8px; background: ${p.is_important ? '#fef5e7' : '#f7fafc'}; border-radius: 6px; ${p.is_important ? 'border-left: 3px solid #f59e0b;' : ''}">
+                            <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;">
+                                ${p.conversation_name}
+                                ${p.is_important ? '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">IMPORTANT</span>' : ''}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                ${p.view_count} checks in ${p.total_duration_minutes} min
+                                ${p.had_new_messages ? ' • 🔔 Had new messages' : ''}
+                                ${p.total_new_messages > 0 ? ` (${p.total_new_messages} new)` : ''}
+                            </div>
+                            <div style="font-size: 11px; color: #a0aec0; margin-top: 4px;">
+                                ${new Date(p.start_time).toLocaleTimeString()} - ${new Date(p.end_time).toLocaleTimeString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateSlackResponseTimes(data) {
+            const tbody = document.querySelector('#slack-response-times-table tbody');
+            const patterns = data.response_patterns || [];
+
+            if (patterns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="loading">No response time data yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = patterns.slice(0, 10).map(p => `
+                <tr style="${p.is_important ? 'background: #fef5e7;' : ''}">
+                    <td>
+                        <strong>${p.conversation_name}</strong>
+                        ${p.is_important ? '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">IMPORTANT</span>' : ''}
+                    </td>
+                    <td>${p.average_response_time_minutes} min</td>
+                    <td>${p.total_responses}</td>
+                    <td>${p.total_new_messages}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSessionsTable(data) {
+            const tbody = document.getElementById('sessions-body');
+            const sessions = data.sessions || [];
+
+            if (sessions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="loading">No sessions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sessions.map(s => {
+                // Convert time to selected timezone
+                const date = new Date(s.start_time);
+                let displayTime;
+
+                if (currentTimezone === 'local') {
+                    displayTime = date.toLocaleTimeString();
+                } else {
+                    // Apply timezone offset
+                    const localOffset = date.getTimezoneOffset() / -60;
+                    const targetOffset = timezoneOffsets[currentTimezone];
+                    const offsetDiff = targetOffset - localOffset;
+
+                    const convertedDate = new Date(date);
+                    convertedDate.setHours(date.getHours() + offsetDiff);
+                    displayTime = convertedDate.toLocaleTimeString() + ` ${currentTimezone}`;
+                }
+
+                // Parse visible apps for split screen
+                let appDisplay = s.app_name;
+                if (s.is_split_screen && s.visible_apps) {
+                    try {
+                        const visibleApps = JSON.parse(s.visible_apps);
+                        // Only show visible apps if they're different from the main app
+                        const otherApps = visibleApps.filter(app => app !== s.app_name);
+                        if (otherApps.length > 0 && otherApps.length <= 2) {
+                            // Show main app + other visible apps
+                            appDisplay = `${s.app_name} + ${otherApps.join(' + ')}`;
+                        } else if (otherApps.length > 2) {
+                            // Too many apps, just show main app with indicator
+                            appDisplay = `${s.app_name} (+${otherApps.length} others)`;
+                        }
+                        // Otherwise just show s.app_name (already set above)
+                    } catch (e) {}
+                }
+
+                return `
+                    <tr style="${s.is_split_screen ? 'background-color: #f0f9ff;' : ''}">
+                        <td>${displayTime}</td>
+                        <td>${s.duration_minutes} min</td>
+                        <td>${appDisplay}</td>
+                        <td>${s.window_title || '<em>No title</em>'}</td>
+                        <td>
+                            <span class="category-badge" style="background-color: ${s.category_color}">
+                                ${s.category}
+                            </span>
+                            ${s.is_deep_work ? '<span class="badge-deep">DEEP WORK</span>' : ''}
+                            ${s.is_split_screen ? '<span class="badge-split-screen">SPLIT SCREEN</span>' : ''}
+                            ${s.is_focus ? '<span class="badge-focus">FOCUS</span>' : ''}
+                            ${s.is_task_based ? '<span class="badge-task">TASK</span>' : ''}
+                            ${s.is_organizational ? '<span class="badge-org">ORGANIZING</span>' : ''}
+                            ${s.is_rapid_switch ? '<span class="badge-rapid">RAPID</span>' : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

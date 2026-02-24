@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug Test</title></head>
+<body>
+<h1>API Debug Test</h1>
+<button onclick="testAPI()">Test API</button>
+<pre id="result"></pre>
+<script>
+async function testAPI() {
+  const result = document.getElementById('result');
+  result.textContent = 'Loading...';
+  try {
+    const date = '2026-02-12';
+    const response = await fetch(`/api/overview?date=${date}`);
+    const data = await response.json();
+    result.textContent = 'Success!\n' + JSON.stringify(data, null, 2);
+    
+    // Test update
+    console.log('Effective deep work:', data.effective_deep_work_sessions);
+    console.log('Task deep work:', data.task_deep_work_sessions);
+  } catch (err) {
+    result.textContent = 'Error: ' + err.message + '\n' + err.stack;
+  }
+}
+testAPI();
+</script>
+</body>
+</html>

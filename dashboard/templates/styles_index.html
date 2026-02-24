@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Style Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 60px;
+            opacity: 0.9;
+        }
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        .style-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .style-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .style-preview {
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .preview-box {
+            width: 90%;
+            height: 180px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        .style-info { padding: 32px; }
+        .style-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .style-description {
+            font-size: 1rem;
+            margin-bottom: 24px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .view-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .view-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        .back-link:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Choose Your Style</h1>
+        <p class="subtitle">Pick the aesthetic that speaks to you</p>
+
+        <div class="styles-grid">
+            <div class="style-card">
+                <div class="style-preview" style="background: linear-gradient(135deg, #E5F3FF, #FFE5E5, #E8DEFF);">
+                    <div class="preview-box" style="background: rgba(255,255,255,0.8); color: #4A5568; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        Pastel Dream
+                    </div>
+                </div>
+                <div class="style-info">
+                    <div class="style-name">✨ Pastel Minimalist</div>
+                    <div class="style-description">
+                        Soft, calming colors with generous spacing. Clean typography and subtle shadows create a peaceful, focused environment.
+                    </div>
+                    <a href="/style/pastel" class="view-button">Preview Theme →</a>
+                </div>
+            </div>
+
+            <div class="style-card">
+                <div class="style-preview" style="background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);">
+                    <div class="preview-box" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); color: white; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);">
+                        Glass Effect
+                    </div>
+                </div>
+                <div class="style-info">
+                    <div class="style-name">🪟 Futuristic Glass</div>
+                    <div class="style-description">
+                        Frosted glass effects with backdrop blur. Modern gradients and translucent layers create a cutting-edge, ethereal interface.
+                    </div>
+                    <a href="/style/glass" class="view-button">Preview Theme →</a>
+                </div>
+            </div>
+
+            <div class="style-card">
+                <div class="style-preview" style="background: #FAFAFA;">
+                    <div class="preview-box" style="background: white; border: 5px solid #0A0A0A; box-shadow: 8px 8px 0px #0A0A0A; color: #0A0A0A; font-weight: 900; text-transform: uppercase;">
+                        BOLD
+                    </div>
+                </div>
+                <div class="style-info">
+                    <div class="style-name">⚡ Neo-Brutalist</div>
+                    <div class="style-description">
+                        Bold geometric shapes with high contrast. Striking typography and pastel accents create a contemporary, edgy look.
+                    </div>
+                    <a href="/style/neo" class="view-button">Preview Theme →</a>
+                </div>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← Back to Original Dashboard</a>
+    </div>
+</body>
+</html>

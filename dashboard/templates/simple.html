@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .metric { padding: 10px; margin: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Simple Dashboard Test</h1>
+    <div id="status">Loading...</div>
+    <div class="metric">
+        <strong>Deep Work:</strong> <span id="deep-work">--</span>
+    </div>
+    <div class="metric">
+        <strong>Task Deep Work:</strong> <span id="task-deep-work">--</span>
+    </div>
+    <div class="metric">
+        <strong>Additional Captured:</strong> <span id="additional">--</span>
+    </div>
+    <pre id="raw"></pre>
+    
+    <script>
+        async function load() {
+            try {
+                document.getElementById('status').textContent = 'Fetching...';
+                const response = await fetch('/api/overview?date=2026-02-12');
+                document.getElementById('status').textContent = 'Got response...';
+                const data = await response.json();
+                document.getElementById('status').textContent = 'Parsed JSON...';
+                
+                document.getElementById('deep-work').textContent = data.effective_deep_work_sessions || '0';
+                document.getElementById('task-deep-work').textContent = data.task_deep_work_sessions || '0';
+                document.getElementById('additional').textContent = data.additional_sessions_captured || '0';
+                document.getElementById('raw').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('status').textContent = 'Success!';
+            } catch (err) {
+                document.getElementById('status').textContent = 'Error: ' + err.message;
+                document.getElementById('raw').textContent = err.stack;
+            }
+        }
+        load();
+    </script>
+</body>
+</html>

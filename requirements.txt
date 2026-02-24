@@ -1,0 +1,8 @@
+atomacos>=3.0.0
+flask>=3.0.0
+flask-cors>=4.0.0
+anthropic>=0.18.0
+sqlalchemy>=2.0.0
+python-dotenv>=1.0.0
+schedule>=1.2.0
+psutil>=5.9.0
