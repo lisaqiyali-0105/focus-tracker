@@ -16,8 +16,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, and_, text
 
 from database.models import (
-    Session, Category, AppSwitch,
-    get_session, get_engine
+    Session, Category, AppSwitch, JournalEntry,
+    get_session, get_engine, Base
 )
 from tracker.task_cluster_analyzer import TaskClusterAnalyzer
 from config.logging import setup_logging
@@ -39,8 +39,9 @@ def get_working_hours_range(target_date):
     end_time = datetime.combine(target_date, time(WORK_END_HOUR, 0, 0))
     return start_time, end_time
 
-# Initialize database
-get_engine()
+# Initialize database (create any missing tables)
+_engine = get_engine()
+Base.metadata.create_all(_engine)
 
 
 def get_db():
@@ -433,6 +434,39 @@ def top_apps():
 
         return jsonify({'apps': apps})
 
+    finally:
+        db.close()
+
+
+@app.route('/api/journal')
+def get_journal():
+    """Get journal entry for a specific date."""
+    date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
+    db = get_db()
+    try:
+        entry = db.query(JournalEntry).filter_by(date=date_str).first()
+        return jsonify({'date': date_str, 'content': entry.content if entry else ''})
+    finally:
+        db.close()
+
+
+@app.route('/api/journal', methods=['POST'])
+def save_journal():
+    """Save or update journal entry for a specific date."""
+    data = request.get_json()
+    date_str = data.get('date')
+    content = data.get('content', '')
+    db = get_db()
+    try:
+        entry = db.query(JournalEntry).filter_by(date=date_str).first()
+        if entry:
+            entry.content = content
+            entry.updated_at = datetime.utcnow()
+        else:
+            entry = JournalEntry(date=date_str, content=content)
+            db.add(entry)
+        db.commit()
+        return jsonify({'status': 'ok'})
     finally:
         db.close()
 

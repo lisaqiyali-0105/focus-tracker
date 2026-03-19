@@ -157,6 +157,18 @@ class AppSwitch(Base):
     )
 
 
+class JournalEntry(Base):
+    """Daily journal entries written by the user in the dashboard."""
+    __tablename__ = 'journal_entries'
+
+    id = Column(Integer, primary_key=True)
+    date = Column(String(10), nullable=False, unique=True, index=True)  # YYYY-MM-DD
+    content = Column(Text, default='')  # HTML from Quill editor
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class DailyReport(Base):
     """Precomputed daily metrics for dashboard performance."""
     __tablename__ = 'daily_reports'
