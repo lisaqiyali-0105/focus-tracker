@@ -19,6 +19,7 @@ Built for people with ADHD (or anyone who loses track of their own attention) wh
 - **Calculates a Focus Score** (0–100) based on hours tracked, rapid context switches, and switching rhythm
 - **Surfaces your best focus hours** and average session length
 - **Weekly trends view** — hours per day, focus score over the week, top apps
+- **Daily Journal** — rich text editor (Quill-powered) that auto-saves per day, so you can add context to your metrics
 - **Privacy-first** — all data stays on your machine, sensitive apps are auto-detected and anonymized
 - **Optional AI categorization** using Claude API — ~$0.12/month via Batch API + prompt caching
 
@@ -127,6 +128,8 @@ launchctl stop com.activitytracker.monitor
 - Average session length
 - Top apps bar chart
 - Hourly focus distribution heatmap
+- Daily Journal — formatted notes auto-saved per day
+- Recent Sessions (collapsible)
 
 ### Weekly View (`/weekly`)
 - Total hours + delta vs. prior week
@@ -214,6 +217,8 @@ GET /api/top-apps?date=YYYY-MM-DD&limit=5      # Top apps by time
 GET /api/switches?rapid_only=true              # App switch log
 GET /api/sessions?date=YYYY-MM-DD              # Session detail
 GET /api/weekly?week_start=YYYY-MM-DD          # Weekly summary
+GET /api/journal?date=YYYY-MM-DD               # Fetch journal entry for a date
+POST /api/journal                              # Save journal entry for a date
 ```
 
 ---
@@ -251,6 +256,7 @@ lsof -i :5000    # Find what's using it
 - [SQLAlchemy](https://www.sqlalchemy.org/) + SQLite — local database
 - [atomacos](https://github.com/pyatom/pyatom) — macOS Accessibility API
 - [Chart.js](https://www.chartjs.org/) — dashboard visualizations
+- [Quill](https://quilljs.com/) — rich text editor for daily journal
 - [Claude API](https://www.anthropic.com/) — optional AI categorization (Batch API + prompt caching)
 
 ---
